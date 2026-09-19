@@ -8,6 +8,9 @@ class LyricsNativeWindow {
 
   static const MethodChannel _channel = MethodChannel('flutter_desktop_lyrics');
 
+  bool get _isSupportedPlatform =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
   /// 初始化桌面歌词子窗口（无边框、置顶、透明客户区、不在任务栏显示）
   Future<bool> initializeLyricsWindow({
     double width = 920,
@@ -15,7 +18,7 @@ class LyricsNativeWindow {
     double? x,
     double? y,
   }) async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('initializeLyricsWindow', {
         'width': width,
@@ -30,9 +33,9 @@ class LyricsNativeWindow {
     }
   }
 
-  /// 设置锁定状态下的点击穿透（WS_EX_TRANSPARENT）
+  /// 设置锁定状态下的点击穿透（WS_EX_TRANSPARENT / GTK input shape）
   Future<bool> setClickThrough(bool enabled) async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('setClickThrough', enabled);
       return res ?? false;
@@ -43,7 +46,7 @@ class LyricsNativeWindow {
 
   /// 设置置顶
   Future<bool> setAlwaysOnTop(bool isAlwaysOnTop) async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('setAlwaysOnTop', isAlwaysOnTop);
       return res ?? false;
@@ -54,7 +57,7 @@ class LyricsNativeWindow {
 
   /// 原生拖拽移动窗口
   Future<bool> startDragging() async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('startDragging');
       return res ?? false;
@@ -71,7 +74,7 @@ class LyricsNativeWindow {
     required double width,
     required double height,
   }) async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('setWindowBounds', {
         'x': x,
@@ -87,7 +90,7 @@ class LyricsNativeWindow {
 
   /// 获取当前窗口坐标与尺寸
   Future<Map<String, double>?> getWindowBounds() async {
-    if (!Platform.isWindows && !Platform.isMacOS) return null;
+    if (!_isSupportedPlatform) return null;
     try {
       final res = await _channel.invokeMapMethod<String, dynamic>('getWindowBounds');
       if (res == null) return null;
@@ -104,7 +107,7 @@ class LyricsNativeWindow {
 
   /// 显示窗口
   Future<bool> showWindow() async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('showWindow');
       return res ?? false;
@@ -115,7 +118,7 @@ class LyricsNativeWindow {
 
   /// 隐藏窗口
   Future<bool> hideWindow() async {
-    if (!Platform.isWindows && !Platform.isMacOS) return false;
+    if (!_isSupportedPlatform) return false;
     try {
       final res = await _channel.invokeMethod<bool>('hideWindow');
       return res ?? false;
