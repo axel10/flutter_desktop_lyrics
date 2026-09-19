@@ -74,9 +74,7 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
       width: initW,
       height: initH,
     );
-    if (_isLocked) {
-      LyricsNativeWindow.instance.setClickThrough(true);
-    }
+    LyricsNativeWindow.instance.setClickThrough(false);
 
     // 2. 注册 IPC 消息处理
     widget.windowController.setWindowMethodHandler(_handleWindowMethod);
@@ -114,9 +112,6 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
           _parseInitialData(map);
         });
         _resizeWindowToFontSize(_style.fontSize);
-        if (_isLocked) {
-          LyricsNativeWindow.instance.setClickThrough(true);
-        }
         return true;
 
       case 'updateLine':
@@ -153,7 +148,6 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
         setState(() {
           _isLocked = locked;
         });
-        LyricsNativeWindow.instance.setClickThrough(locked);
         return true;
     }
     return null;
@@ -165,7 +159,6 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
       setState(() {
         _isLocked = newLock;
       });
-      LyricsNativeWindow.instance.setClickThrough(newLock);
       _sendActionToMain(DesktopLyricsAction(
         type: DesktopLyricsActionType.toggleLock,
         data: {'locked': newLock},
@@ -176,7 +169,7 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
     if (action.type == DesktopLyricsActionType.increaseFontSize) {
       if (_style.fontSize >= maxFontSize) return;
       final newSize = (_style.fontSize + stepFontSize).clamp(minFontSize, maxFontSize);
-      final newTranslationSize = (newSize * 0.58).clamp(11.0, 36.0);
+      final newTranslationSize = (newSize * 0.68).clamp(14.0, 38.0);
       setState(() {
         _style = _style.copyWith(
           fontSize: newSize,
@@ -194,7 +187,7 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
     if (action.type == DesktopLyricsActionType.decreaseFontSize) {
       if (_style.fontSize <= minFontSize) return;
       final newSize = (_style.fontSize - stepFontSize).clamp(minFontSize, maxFontSize);
-      final newTranslationSize = (newSize * 0.58).clamp(11.0, 36.0);
+      final newTranslationSize = (newSize * 0.68).clamp(14.0, 38.0);
       setState(() {
         _style = _style.copyWith(
           fontSize: newSize,

@@ -142,18 +142,22 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
           alignment: Alignment.center,
           fit: StackFit.expand,
           children: [
-            // 1. 悬浮交互背板（未锁定且悬停时显示磨砂微黑底，锁定或平时完全 100% 透明）
+            // 1. 悬浮交互背板（支持常驻暗色背景；未锁定时鼠标悬停平滑加深并显示亮边框）
             Positioned.fill(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 240),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   color: _isHovered && !widget.isLocked
-                      ? Colors.black.withValues(alpha: 0.38)
-                      : Colors.transparent,
+                      ? Colors.black.withValues(alpha: widget.style.showBackground ? 0.50 : 0.38)
+                      : (widget.style.showBackground
+                          ? Colors.black.withValues(alpha: 0.35)
+                          : Colors.transparent),
                   border: _isHovered && !widget.isLocked
-                      ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
-                      : null,
+                      ? Border.all(color: Colors.white.withValues(alpha: 0.16), width: 1)
+                      : (widget.style.showBackground
+                          ? Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1)
+                          : null),
                 ),
               ),
             ),
@@ -233,7 +237,7 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
 
                             // 3.2 翻译行（支持长句自动换行）
                             if (hasTranslation) ...[
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               Text(
                                 line.translation!.trim(),
                                 textAlign: widget.style.alignment == 'left'
@@ -246,14 +250,21 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
                                   fontFamily: widget.style.fontFamily,
                                   fontFamilyFallback: widget.style.fontFamilyFallback ?? _defaultFontFamilyFallback,
                                   fontSize: widget.style.translationFontSize,
-                                  fontWeight: FontWeight.normal,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.3,
+                                  height: 1.25,
                                   color: Color(widget.style.translationColor),
                                   shadows: widget.style.hasShadow
                                       ? const [
                                           Shadow(
-                                            offset: Offset(0, 1),
-                                            blurRadius: 4.0,
+                                            offset: Offset(0, 2),
+                                            blurRadius: 5.0,
                                             color: Color(0xCC000000),
+                                          ),
+                                          Shadow(
+                                            offset: Offset(0, 1),
+                                            blurRadius: 2.0,
+                                            color: Color(0xE6000000),
                                           ),
                                         ]
                                       : null,
@@ -387,6 +398,23 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
             color: isMaxSize ? Colors.white38 : null,
             onTap: () => widget.onAction(
               const DesktopLyricsAction(type: DesktopLyricsActionType.increaseFontSize),
+            ),
+          ),
+
+          // 常驻暗色背景开/关
+          _ToolbarButton(
+            icon: Icons.contrast_rounded,
+            tooltip: widget.style.showBackground
+                ? '常驻背景：已开启 (点击关闭)'
+                : '常驻背景：已关闭 (点击开启)',
+            color: widget.style.showBackground
+                ? Colors.cyanAccent
+                : Colors.white.withValues(alpha: 0.9),
+            onTap: () => widget.onAction(
+              DesktopLyricsAction(
+                type: DesktopLyricsActionType.toggleBackground,
+                data: {'showBackground': !widget.style.showBackground},
+              ),
             ),
           ),
 

@@ -127,6 +127,22 @@ class AppleKaraokeLineWidget extends StatelessWidget {
   }
 }
 
+class _WordProgressClipper extends CustomClipper<Rect> {
+  final double progress;
+
+  const _WordProgressClipper(this.progress);
+
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTWH(0, 0, size.width * progress.clamp(0.0, 1.0), size.height);
+  }
+
+  @override
+  bool shouldReclip(covariant _WordProgressClipper oldClipper) {
+    return oldClipper.progress != progress;
+  }
+}
+
 class _AppleSingleWordHighlight extends StatelessWidget {
   final String text;
   final double progress;
@@ -158,26 +174,24 @@ class _AppleSingleWordHighlight extends StatelessWidget {
       );
     }
 
-    // 苹果音乐经典的软边缘平滑向右扫光插值算法
-    const double softEdge = 0.18;
-    final double center = -softEdge + progress * (1.0 + 2 * softEdge);
-    final double start = (center - softEdge / 2).clamp(0.0, 1.0);
-    final double end = (center + softEdge / 2).clamp(0.0, 1.0);
+    final cleanStyle = style.copyWith(shadows: const []);
 
-    return ShaderMask(
-      blendMode: BlendMode.srcIn,
-      shaderCallback: (bounds) {
-        return LinearGradient(
-          colors: [activeColor, activeColor, inactiveColor, inactiveColor],
-          stops: [0.0, start, end, 1.0],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ).createShader(bounds);
-      },
-      child: Text(
-        text,
-        style: style.copyWith(color: Colors.white),
-      ),
+    return Stack(
+      children: [
+        // 底层：未变亮颜色及正常文字深色阴影，保证文字可读性
+        Text(
+          text,
+          style: style.copyWith(color: inactiveColor),
+        ),
+        // 上层：已变亮的高亮颜色，按进度裁剪填充，不带阴影以完全去掉发光光晕
+        ClipRect(
+          clipper: _WordProgressClipper(progress),
+          child: Text(
+            text,
+            style: cleanStyle.copyWith(color: activeColor),
+          ),
+        ),
+      ],
     );
   }
 }

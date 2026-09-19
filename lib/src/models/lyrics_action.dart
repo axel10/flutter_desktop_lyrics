@@ -3,6 +3,7 @@ enum DesktopLyricsActionType {
   next,
   previous,
   toggleLock,
+  toggleBackground,
   close,
   increaseFontSize,
   decreaseFontSize,

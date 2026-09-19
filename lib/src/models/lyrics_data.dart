@@ -101,17 +101,19 @@ class DesktopLyricsStyle {
   final int inactiveColor;
   final int translationColor;
   final bool hasShadow;
+  final bool showBackground;
   final String alignment; // 'left' or 'center'
   final String? fontFamily;
   final List<String>? fontFamilyFallback;
 
   const DesktopLyricsStyle({
     this.fontSize = 28.0,
-    this.translationFontSize = 16.0,
+    this.translationFontSize = 18.0,
     this.activeColor = 0xFFFFFFFF,
     this.inactiveColor = 0x88FFFFFF,
-    this.translationColor = 0xCCEEEEEE,
+    this.translationColor = 0xF2FFFFFF,
     this.hasShadow = true,
+    this.showBackground = false,
     this.alignment = 'center',
     this.fontFamily,
     this.fontFamilyFallback,
@@ -124,6 +126,7 @@ class DesktopLyricsStyle {
     int? inactiveColor,
     int? translationColor,
     bool? hasShadow,
+    bool? showBackground,
     String? alignment,
     String? fontFamily,
     List<String>? fontFamilyFallback,
@@ -135,6 +138,7 @@ class DesktopLyricsStyle {
       inactiveColor: inactiveColor ?? this.inactiveColor,
       translationColor: translationColor ?? this.translationColor,
       hasShadow: hasShadow ?? this.hasShadow,
+      showBackground: showBackground ?? this.showBackground,
       alignment: alignment ?? this.alignment,
       fontFamily: fontFamily ?? this.fontFamily,
       fontFamilyFallback: fontFamilyFallback ?? this.fontFamilyFallback,
@@ -144,11 +148,12 @@ class DesktopLyricsStyle {
   factory DesktopLyricsStyle.fromJson(Map<String, dynamic> json) {
     return DesktopLyricsStyle(
       fontSize: (json['fontSize'] as num?)?.toDouble() ?? 28.0,
-      translationFontSize: (json['translationFontSize'] as num?)?.toDouble() ?? 16.0,
+      translationFontSize: (json['translationFontSize'] as num?)?.toDouble() ?? 18.0,
       activeColor: json['activeColor'] as int? ?? 0xFFFFFFFF,
       inactiveColor: json['inactiveColor'] as int? ?? 0x88FFFFFF,
-      translationColor: json['translationColor'] as int? ?? 0xCCEEEEEE,
+      translationColor: json['translationColor'] as int? ?? 0xF2FFFFFF,
       hasShadow: json['hasShadow'] as bool? ?? true,
+      showBackground: json['showBackground'] as bool? ?? false,
       alignment: json['alignment'] as String? ?? 'center',
       fontFamily: json['fontFamily'] as String?,
       fontFamilyFallback: (json['fontFamilyFallback'] as List<dynamic>?)
@@ -164,6 +169,7 @@ class DesktopLyricsStyle {
         'inactiveColor': inactiveColor,
         'translationColor': translationColor,
         'hasShadow': hasShadow,
+        'showBackground': showBackground,
         'alignment': alignment,
         if (fontFamily != null) 'fontFamily': fontFamily,
         if (fontFamilyFallback != null) 'fontFamilyFallback': fontFamilyFallback,
@@ -180,6 +186,7 @@ class DesktopLyricsStyle {
           inactiveColor == other.inactiveColor &&
           translationColor == other.translationColor &&
           hasShadow == other.hasShadow &&
+          showBackground == other.showBackground &&
           alignment == other.alignment &&
           fontFamily == other.fontFamily &&
           listEquals(fontFamilyFallback, other.fontFamilyFallback);
@@ -192,6 +199,7 @@ class DesktopLyricsStyle {
         inactiveColor,
         translationColor,
         hasShadow,
+        showBackground,
         alignment,
         fontFamily,
         Object.hashAll(fontFamilyFallback ?? const []),

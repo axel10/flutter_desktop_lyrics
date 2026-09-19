@@ -68,7 +68,7 @@ class DesktopLyricsController extends ChangeNotifier {
         final newSize = (action.data!['fontSize'] as num).toDouble();
         _style = _style.copyWith(
           fontSize: newSize,
-          translationFontSize: (newSize * 0.58).clamp(11.0, 36.0),
+          translationFontSize: (newSize * 0.68).clamp(14.0, 38.0),
         );
         notifyListeners();
       }
@@ -211,10 +211,13 @@ class DesktopLyricsController extends ChangeNotifier {
     _currentLine = line;
     if (_windowController != null) {
       try {
+        debugPrint('[DesktopLyricsController] updateLine IPC invoke: "${line?.text}" to window ${_windowController!.windowId}');
         await _windowController!.invokeMethod('updateLine', line?.toJson());
       } catch (e) {
         debugPrint('[DesktopLyricsController] updateLine IPC error: $e');
       }
+    } else {
+      debugPrint('[DesktopLyricsController] updateLyricLine: _windowController is NULL!');
     }
   }
 
