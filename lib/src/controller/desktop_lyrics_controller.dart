@@ -80,7 +80,7 @@ class DesktopLyricsController extends ChangeNotifier {
 
   /// 打开或显示桌面歌词窗口
   Future<void> show({DesktopLyricsStyle? initialStyle}) async {
-    if (!Platform.isWindows) return;
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
     if (initialStyle != null) {
       _style = initialStyle;
     }

@@ -68,12 +68,15 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
     super.initState();
     _parseInitialData(widget.initialData);
 
-    // 1. 初始化原生 Win32 透明置顶窗口（根据初始字号计算初始宽高）
+    // 1. 初始化原生透明置顶窗口（根据初始字号计算初始宽高）
     final (initW, initH) = _calculateWindowSize(_style.fontSize);
     LyricsNativeWindow.instance.initializeLyricsWindow(
       width: initW,
       height: initH,
     );
+    if (_isLocked) {
+      LyricsNativeWindow.instance.setClickThrough(true);
+    }
 
     // 2. 注册 IPC 消息处理
     widget.windowController.setWindowMethodHandler(_handleWindowMethod);
@@ -111,6 +114,9 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
           _parseInitialData(map);
         });
         _resizeWindowToFontSize(_style.fontSize);
+        if (_isLocked) {
+          LyricsNativeWindow.instance.setClickThrough(true);
+        }
         return true;
 
       case 'updateLine':
@@ -147,6 +153,7 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
         setState(() {
           _isLocked = locked;
         });
+        LyricsNativeWindow.instance.setClickThrough(locked);
         return true;
     }
     return null;
@@ -158,6 +165,7 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
       setState(() {
         _isLocked = newLock;
       });
+      LyricsNativeWindow.instance.setClickThrough(newLock);
       _sendActionToMain(DesktopLyricsAction(
         type: DesktopLyricsActionType.toggleLock,
         data: {'locked': newLock},
@@ -236,14 +244,12 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
       ),
       home: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Center(
-          child: DesktopLyricsView(
-            currentLine: _currentLine,
-            playbackState: _playbackState,
-            style: _style,
-            isLocked: _isLocked,
-            onAction: _onAction,
-          ),
+        body: DesktopLyricsView(
+          currentLine: _currentLine,
+          playbackState: _playbackState,
+          style: _style,
+          isLocked: _isLocked,
+          onAction: _onAction,
         ),
       ),
     );

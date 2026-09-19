@@ -43,10 +43,13 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
   DateTime _lastSyncTime = DateTime.now();
   int _lastSyncPositionMs = 0;
   bool _isPlaying = false;
-  int _currentInterpolatedMs = 0;
+  final ValueNotifier<int> _currentInterpolatedMsNotifier = ValueNotifier<int>(0);
 
   bool _isHovered = false;
   Timer? _hideControlsTimer;
+
+  static const Duration _inactivityTimeout = Duration(milliseconds: 2600);
+  static const Duration _exitTimeout = Duration(milliseconds: 800);
 
   @override
   void initState() {
@@ -54,16 +57,12 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
     _lastSyncPositionMs = widget.playbackState.positionMs;
     _lastSyncTime = DateTime.fromMillisecondsSinceEpoch(widget.playbackState.timestampMs);
     _isPlaying = widget.playbackState.isPlaying;
+    _currentInterpolatedMsNotifier.value = _lastSyncPositionMs;
 
     _ticker = createTicker((_) {
       if (_isPlaying) {
         final elapsedMs = DateTime.now().difference(_lastSyncTime).inMilliseconds;
-        final nowMs = _lastSyncPositionMs + elapsedMs;
-        if (mounted) {
-          setState(() {
-            _currentInterpolatedMs = nowMs;
-          });
-        }
+        _currentInterpolatedMsNotifier.value = _lastSyncPositionMs + elapsedMs;
       }
     });
 
@@ -79,7 +78,7 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
       _lastSyncPositionMs = widget.playbackState.positionMs;
       _lastSyncTime = DateTime.fromMillisecondsSinceEpoch(widget.playbackState.timestampMs);
       _isPlaying = widget.playbackState.isPlaying;
-      _currentInterpolatedMs = _lastSyncPositionMs;
+      _currentInterpolatedMsNotifier.value = _lastSyncPositionMs;
       _updateTicker();
     }
   }
@@ -96,21 +95,30 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
   void dispose() {
     _ticker.dispose();
     _hideControlsTimer?.cancel();
+    _currentInterpolatedMsNotifier.dispose();
     super.dispose();
   }
 
+  void _onPointerMoveOrHover() {
+    _resetHideTimer(timeout: _inactivityTimeout);
+  }
+
   void _onMouseEnter() {
+    _resetHideTimer(timeout: _inactivityTimeout);
+  }
+
+  void _onMouseExit() {
+    _resetHideTimer(timeout: _exitTimeout);
+  }
+
+  void _resetHideTimer({required Duration timeout}) {
     _hideControlsTimer?.cancel();
-    if (mounted) {
+    if (!_isHovered && mounted) {
       setState(() {
         _isHovered = true;
       });
     }
-  }
-
-  void _onMouseExit() {
-    _hideControlsTimer?.cancel();
-    _hideControlsTimer = Timer(const Duration(milliseconds: 1400), () {
+    _hideControlsTimer = Timer(timeout, () {
       if (mounted) {
         setState(() {
           _isHovered = false;
@@ -125,26 +133,30 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
     final hasTranslation = line?.translation != null && line!.translation!.trim().isNotEmpty;
 
     return MouseRegion(
+      hitTestBehavior: HitTestBehavior.opaque,
       onEnter: (_) => _onMouseEnter(),
+      onHover: (_) => _onPointerMoveOrHover(),
       onExit: (_) => _onMouseExit(),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 1. 悬浮交互背板（未锁定且悬停时显示磨砂微黑底，锁定或平时完全 100% 透明）
-          Positioned.fill(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: _isHovered && !widget.isLocked
-                    ? Colors.black.withValues(alpha: 0.38)
-                    : Colors.transparent,
-                border: _isHovered && !widget.isLocked
-                    ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
-                    : null,
+      child: SizedBox.expand(
+        child: Stack(
+          alignment: Alignment.center,
+          fit: StackFit.expand,
+          children: [
+            // 1. 悬浮交互背板（未锁定且悬停时显示磨砂微黑底，锁定或平时完全 100% 透明）
+            Positioned.fill(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: _isHovered && !widget.isLocked
+                      ? Colors.black.withValues(alpha: 0.38)
+                      : Colors.transparent,
+                  border: _isHovered && !widget.isLocked
+                      ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
+                      : null,
+                ),
               ),
             ),
-          ),
 
           // 2. 全区域拖拽手势层（仅在未锁定状态下响应拖拽，随手按住背景或空白处均可移动窗口）
           if (!widget.isLocked)
@@ -186,10 +198,15 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
                           children: [
                             // 3.1 原文行（支持自动折行与逐字平滑扫光）
                             if (line != null)
-                              AppleKaraokeLineWidget(
-                                line: line,
-                                currentMs: _currentInterpolatedMs,
-                                style: widget.style,
+                              ValueListenableBuilder<int>(
+                                valueListenable: _currentInterpolatedMsNotifier,
+                                builder: (context, currentMs, _) {
+                                  return AppleKaraokeLineWidget(
+                                    line: line,
+                                    currentMs: currentMs,
+                                    style: widget.style,
+                                  );
+                                },
                               )
                             else
                               Text(
@@ -267,8 +284,9 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHoverToolbar(BuildContext context) {
     final fontSize = widget.style.fontSize;

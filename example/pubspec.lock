@@ -52,9 +52,10 @@ packages:
   desktop_multi_window:
     dependency: transitive
     description:
-      path: "../../flutter-plugins/packages/desktop_multi_window"
-      relative: true
-    source: path
+      name: desktop_multi_window
+      sha256: "6a82209dfd29279258515157e5c08612542ebf7bfb3b55fb1dfcd32c076eea4d"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
     version: "0.3.1"
   fake_async:
     dependency: transitive
