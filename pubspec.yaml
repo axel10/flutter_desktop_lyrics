@@ -1,16 +1,19 @@
 name: flutter_desktop_lyrics
 description: "A new Flutter plugin project."
 version: 0.0.1
+publish_to: none
 homepage:
 
 environment:
-  sdk: ^3.12.2
+  sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.3.0'
 
 dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  desktop_multi_window:
+    path: ../flutter-plugins/packages/desktop_multi_window
 
 dev_dependencies:
   flutter_test:

@@ -12,7 +12,7 @@ class FlutterDesktopLyricsPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
-  FlutterDesktopLyricsPlugin();
+  FlutterDesktopLyricsPlugin(flutter::PluginRegistrarWindows *registrar);
 
   virtual ~FlutterDesktopLyricsPlugin();
 
@@ -24,6 +24,10 @@ class FlutterDesktopLyricsPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+ private:
+  flutter::PluginRegistrarWindows *registrar_;
+  HWND GetWindowHandle() const;
 };
 
 }  // namespace flutter_desktop_lyrics
