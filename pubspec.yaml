@@ -12,7 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-  desktop_multi_window: ^0.3.1
+  desktop_multi_window: 
+    git:
+      url: https://github.com/axel10/flutter-plugins
+      path: packages/desktop_multi_window
+      ref: main
 
 dev_dependencies:
   flutter_test:
