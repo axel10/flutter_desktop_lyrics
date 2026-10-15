@@ -60,6 +60,16 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
         width: targetWidth,
         height: targetHeight,
       );
+
+      _sendActionToMain(DesktopLyricsAction(
+        type: DesktopLyricsActionType.windowMoved,
+        data: {
+          'x': newX,
+          'y': newY,
+          'width': targetWidth,
+          'height': targetHeight,
+        },
+      ));
     }
   }
 
@@ -68,11 +78,15 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
     super.initState();
     _parseInitialData(widget.initialData);
 
-    // 1. 初始化原生透明置顶窗口（根据初始字号计算初始宽高）
+    // 1. 初始化原生透明置顶窗口（根据初始字号计算初始宽高，恢复保存的坐标）
     final (initW, initH) = _calculateWindowSize(_style.fontSize);
+    final savedX = (widget.initialData['x'] as num?)?.toDouble();
+    final savedY = (widget.initialData['y'] as num?)?.toDouble();
     LyricsNativeWindow.instance.initializeLyricsWindow(
       width: initW,
       height: initH,
+      x: savedX,
+      y: savedY,
     );
     LyricsNativeWindow.instance.setClickThrough(false);
 
@@ -111,7 +125,17 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
         setState(() {
           _parseInitialData(map);
         });
-        _resizeWindowToFontSize(_style.fontSize);
+        if (map['x'] != null && map['y'] != null) {
+          final (targetWidth, targetHeight) = _calculateWindowSize(_style.fontSize);
+          LyricsNativeWindow.instance.setWindowBounds(
+            x: (map['x'] as num).toDouble(),
+            y: (map['y'] as num).toDouble(),
+            width: targetWidth,
+            height: targetHeight,
+          );
+        } else {
+          _resizeWindowToFontSize(_style.fontSize);
+        }
         return true;
 
       case 'updateLine':
@@ -154,6 +178,18 @@ class _DesktopLyricsWindowAppState extends State<DesktopLyricsWindowApp> {
   }
 
   void _onAction(DesktopLyricsAction action) {
+    if (action.type == DesktopLyricsActionType.toggleBackground) {
+      final newBg = action.data?['showBackground'] as bool? ?? !_style.showBackground;
+      setState(() {
+        _style = _style.copyWith(showBackground: newBg);
+      });
+      _sendActionToMain(DesktopLyricsAction(
+        type: DesktopLyricsActionType.toggleBackground,
+        data: {'showBackground': newBg},
+      ));
+      return;
+    }
+
     if (action.type == DesktopLyricsActionType.toggleLock) {
       final newLock = !_isLocked;
       setState(() {

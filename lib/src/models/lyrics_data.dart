@@ -24,6 +24,18 @@ class DesktopLyricWord {
         'durationMs': durationMs,
         'text': text,
       };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DesktopLyricWord &&
+          runtimeType == other.runtimeType &&
+          timestampMs == other.timestampMs &&
+          durationMs == other.durationMs &&
+          text == other.text;
+
+  @override
+  int get hashCode => Object.hash(timestampMs, durationMs, text);
 }
 
 class DesktopLyricLine {
@@ -58,6 +70,24 @@ class DesktopLyricLine {
         if (translation != null) 'translation': translation,
         if (words != null) 'words': words!.map((w) => w.toJson()).toList(),
       };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DesktopLyricLine &&
+          runtimeType == other.runtimeType &&
+          timestampMs == other.timestampMs &&
+          text == other.text &&
+          translation == other.translation &&
+          listEquals(words, other.words);
+
+  @override
+  int get hashCode => Object.hash(
+        timestampMs,
+        text,
+        translation,
+        words != null ? Object.hashAll(words!) : null,
+      );
 }
 
 class DesktopPlaybackState {

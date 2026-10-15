@@ -7,6 +7,7 @@ enum DesktopLyricsActionType {
   close,
   increaseFontSize,
   decreaseFontSize,
+  windowMoved,
 }
 
 class DesktopLyricsAction {

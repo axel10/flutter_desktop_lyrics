@@ -75,8 +75,8 @@ void FlutterDesktopLyricsPlugin::HandleMethodCall(
     // Parse dimensions and initial position
     int w = 920;
     int h = 150;
-    int x = -1;
-    int y = -1;
+    int x = -100000;
+    int y = -100000;
 
     if (method_call.arguments()) {
       if (const auto *map = std::get_if<flutter::EncodableMap>(method_call.arguments())) {
@@ -103,7 +103,16 @@ void FlutterDesktopLyricsPlugin::HandleMethodCall(
       }
     }
 
-    if (x < 0 || y < 0) {
+    bool validPos = false;
+    if (x != -100000 && y != -100000) {
+      POINT pt = {x + w / 2, y + h / 2};
+      HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTONULL);
+      if (hMon) {
+        validPos = true;
+      }
+    }
+
+    if (!validPos) {
       RECT workArea;
       SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
       int screenW = workArea.right - workArea.left;

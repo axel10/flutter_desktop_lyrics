@@ -127,6 +127,17 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
     });
   }
 
+  Future<void> _notifyWindowMoved() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+    final bounds = await LyricsNativeWindow.instance.getWindowBounds();
+    if (bounds != null && mounted) {
+      widget.onAction(DesktopLyricsAction(
+        type: DesktopLyricsActionType.windowMoved,
+        data: bounds,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final line = widget.currentLine;
@@ -167,8 +178,9 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onPanStart: (_) {
-                  LyricsNativeWindow.instance.startDragging();
+                onPanStart: (_) async {
+                  await LyricsNativeWindow.instance.startDragging();
+                  _notifyWindowMoved();
                 },
                 child: MouseRegion(
                   cursor: SystemMouseCursors.move,
@@ -325,9 +337,10 @@ class _DesktopLyricsViewState extends State<DesktopLyricsView>
         children: [
           // 拖拽把手（仅在未锁定状态下高亮，锁定状态下变灰禁用）
           GestureDetector(
-            onPanStart: (_) {
+            onPanStart: (_) async {
               if (!widget.isLocked) {
-                LyricsNativeWindow.instance.startDragging();
+                await LyricsNativeWindow.instance.startDragging();
+                _notifyWindowMoved();
               }
             },
             child: MouseRegion(

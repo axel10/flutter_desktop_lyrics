@@ -88,8 +88,17 @@ public class FlutterDesktopLyricsPlugin: NSObject, FlutterPlugin {
         let finalY: CGFloat
 
         if let cx = customX, let cy = customY {
-          finalX = CGFloat(cx)
-          finalY = primaryScreenHeight - CGFloat(cy) - CGFloat(h)
+          let testX = CGFloat(cx)
+          let testY = primaryScreenHeight - CGFloat(cy) - CGFloat(h)
+          let testPoint = NSPoint(x: testX + CGFloat(w) / 2.0, y: testY + CGFloat(h) / 2.0)
+          let isOnScreen = NSScreen.screens.contains { NSPointInRect(testPoint, $0.frame) }
+          if isOnScreen {
+            finalX = testX
+            finalY = testY
+          } else {
+            finalX = visibleFrame.origin.x + (visibleFrame.width - CGFloat(w)) / 2.0
+            finalY = visibleFrame.origin.y + 60.0
+          }
         } else {
           finalX = visibleFrame.origin.x + (visibleFrame.width - CGFloat(w)) / 2.0
           finalY = visibleFrame.origin.y + 60.0

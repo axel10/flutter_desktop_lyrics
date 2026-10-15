@@ -62,6 +62,13 @@ class DesktopLyricsController extends ChangeNotifier {
         _isLocked = action.data!['locked'] as bool;
         notifyListeners();
       }
+    } else if (action.type == DesktopLyricsActionType.toggleBackground) {
+      if (action.data != null && action.data!['showBackground'] is bool) {
+        _style = _style.copyWith(
+          showBackground: action.data!['showBackground'] as bool,
+        );
+        notifyListeners();
+      }
     } else if (action.type == DesktopLyricsActionType.increaseFontSize ||
         action.type == DesktopLyricsActionType.decreaseFontSize) {
       if (action.data != null && action.data!['fontSize'] is num) {
@@ -79,10 +86,18 @@ class DesktopLyricsController extends ChangeNotifier {
   }
 
   /// 打开或显示桌面歌词窗口
-  Future<void> show({DesktopLyricsStyle? initialStyle}) async {
+  Future<void> show({
+    DesktopLyricsStyle? initialStyle,
+    bool? isLocked,
+    double? initialX,
+    double? initialY,
+  }) async {
     if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
     if (initialStyle != null) {
       _style = initialStyle;
+    }
+    if (isLocked != null) {
+      _isLocked = isLocked;
     }
 
     await initializeMainChannel();
@@ -96,7 +111,7 @@ class DesktopLyricsController extends ChangeNotifier {
     if (_windowController != null) {
       try {
         await _windowController!.show();
-        await _syncFullState();
+        await _syncFullState(x: initialX, y: initialY);
         notifyListeners();
         return;
       } catch (_) {
@@ -115,7 +130,7 @@ class DesktopLyricsController extends ChangeNotifier {
       if (lyricsWindows.isNotEmpty) {
         _windowController = lyricsWindows.first;
         await _windowController!.show();
-        await _syncFullState();
+        await _syncFullState(x: initialX, y: initialY);
 
         // 如果存在多余的重复歌词窗口（如之前 hot restart 堆叠的），隐藏多余的
         for (int i = 1; i < lyricsWindows.length; i++) {
@@ -137,6 +152,8 @@ class DesktopLyricsController extends ChangeNotifier {
       'isLocked': _isLocked,
       'style': _style.toJson(),
       'playbackState': _playbackState.toJson(),
+      if (initialX != null) 'x': initialX,
+      if (initialY != null) 'y': initialY,
       if (_currentLine != null) 'currentLine': _currentLine!.toJson(),
     };
 
@@ -208,16 +225,14 @@ class DesktopLyricsController extends ChangeNotifier {
 
   /// 同步当前歌词行（原文 + 翻译 + 逐字时间戳）
   Future<void> updateLyricLine(DesktopLyricLine? line) async {
+    if (_currentLine == line) return;
     _currentLine = line;
     if (_windowController != null) {
       try {
-        debugPrint('[DesktopLyricsController] updateLine IPC invoke: "${line?.text}" to window ${_windowController!.windowId}');
         await _windowController!.invokeMethod('updateLine', line?.toJson());
       } catch (e) {
         debugPrint('[DesktopLyricsController] updateLine IPC error: $e');
       }
-    } else {
-      debugPrint('[DesktopLyricsController] updateLyricLine: _windowController is NULL!');
     }
   }
 
@@ -244,7 +259,7 @@ class DesktopLyricsController extends ChangeNotifier {
     }
   }
 
-  Future<void> _syncFullState() async {
+  Future<void> _syncFullState({double? x, double? y}) async {
     if (_windowController == null) return;
     String currentEngineId = '0';
     try {
@@ -258,6 +273,8 @@ class DesktopLyricsController extends ChangeNotifier {
         'isLocked': _isLocked,
         'style': _style.toJson(),
         'playbackState': _playbackState.toJson(),
+        if (x != null) 'x': x,
+        if (y != null) 'y': y,
         if (_currentLine != null) 'currentLine': _currentLine!.toJson(),
       });
     } catch (e) {
